@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "discord.js": "^14.12.1",
+    "dotenv": "^16.3.1",
+    "mongodb": "^5.7.0"
+  },
+  "name": "ka-comment-tracker-3",
+  "description": "A Discord bot that can search for Khan Academy comments!",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  },
+  "scripts": {
+    "start": "ts-node scripts/startBot.ts",
+    "reg": "ts-node scripts/registerCommands.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
