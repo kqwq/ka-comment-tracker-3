@@ -1,13 +1,14 @@
 import {
   AttachmentBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
   User,
 } from "discord.js";
 import { Db } from "mongodb";
-import { getAvatarAttachmentFromMessage } from "../util/avatars";
-import { friendlyFeedbackTypes } from "../util/constants";
+import { friendlyFeedbackTypes } from "../util/types";
 
 export default {
   data: new SlashCommandBuilder()
@@ -101,7 +102,7 @@ export default {
 
     // Set up mongo query
     const queryDescription = ["Find all comments"];
-    const messages = db.collection("khan-academy-messages");
+    const messages = db.collection("messages");
     const query: any = {};
     const options: any = {
       projection: {
@@ -202,6 +203,7 @@ export default {
     }
 
     // Set description
+
     const queryDescriptionStr = queryDescription.join(" ") + ".";
     await interaction.editReply({ content: queryDescriptionStr });
 
@@ -211,32 +213,54 @@ export default {
 
     // Find one
     const message: any = await messages.findOne(query, options);
+    if (!message) {
+      return await interaction.editReply({
+        content: "No messages found",
+      });
+    }
+
+    // Get reply type
+    const friendlyFT =
+      friendlyFeedbackTypes[
+        message.feedbackType as keyof typeof friendlyFeedbackTypes
+      ];
 
     // Cache image
-    const avatarImg = await getAvatarAttachmentFromMessage(message);
+    const avatarImg =
+      `https://cdn.kastatic.org${message.author?.avatar?.imageSrc}`
+        ?.replace("/svg", "")
+        ?.replace(".svg", ".png");
+    console.log("avatarImg", avatarImg);
+
+    // Create left and right buttons
+    const leftButton = new ButtonBuilder()
+      .setCustomId("left")
+      .setLabel("\u200b")
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji("⬅️");
+
+    const rightButton = new ButtonBuilder()
+      .setCustomId("right")
+      .setLabel("\u200b")
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji("➡️");
 
     // Create embed
     const embed = new EmbedBuilder()
       .setTitle(`1 of ${documentCount}`)
-      .setDescription(message?.content?.slice(0, 4096))
+      .setDescription(message.content?.slice(0, 4096))
       .setColor("Random")
-      .setTimestamp(message?.date)
+      .setTimestamp(message.date)
       .setFooter({
-        text: `${friendlyFeedbackTypes[message?.feedbackType]} by ${
-          message?.author?.nickname
-        }`,
-        iconURL: "attachment://avatar.svg",
+        text: `${friendlyFT} by ${message.author?.nickname}`,
+        iconURL: avatarImg,
       })
-      .addFields
-      // { name: "Author", value: `[${messag}]`, inline: true },
-      // { name: "Program ID", value: message?.programID, inline: true },
-      ();
-
-    const attachment = new AttachmentBuilder(avatarImg ?? "").setName(
-      "avatar.svg"
-    );
+      .addFields(
+        // { name: "Author", value: `[${messag}]`, inline: true },
+        { name: "Program ID", value: message.focus?.relativeUrl, inline: true }
+      );
 
     // Send embed
-    await interaction.editReply({ embeds: [embed], files: [attachment] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

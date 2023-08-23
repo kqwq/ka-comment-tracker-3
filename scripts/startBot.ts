@@ -62,9 +62,9 @@ export async function handleClientEvents(
 
 async function main() {
   // Load commands and event handlers
-  console.log("🟡 Loading Google Sheets backend...");
+  console.log("🟡 Loading Mongo database...");
   const db = await loadDatabase();
-  console.log("🟢 Connected to Google Sheets backend");
+  console.log("🟢 Connected to Mongo database");
   const slashCommands = await loadSlashCommands();
   await handleClientEvents(client, db, slashCommands);
   console.log(`🌐 Loaded ${slashCommands.length} slash commands`);

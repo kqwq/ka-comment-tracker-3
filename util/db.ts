@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 import { config } from "dotenv";
+import { dbConstants } from "./constants";
 config();
 
 export async function loadDatabase() {
@@ -7,5 +8,5 @@ export async function loadDatabase() {
   const client = new MongoClient(process.env.MONGODB_URI ?? "", {});
 
   await client.connect();
-  return client.db("test");
+  return client.db(dbConstants.dbName);
 }
